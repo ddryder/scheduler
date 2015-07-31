@@ -2,6 +2,6 @@
     "name": "scheduler",
     "version": "0.0.1",
     "author": "David Ryder <davidryder@yahoo.com>
-    "license": "Choose a license",
-    "description": "Scheduler"
+    "license": "MIT",
+    "description": "Task cheduler"
 }
