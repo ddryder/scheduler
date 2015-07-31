@@ -1,7 +1,7 @@
 {
     "name": "scheduler",
     "version": "0.0.1",
-    "author": "David Ryder <davidryder@yahoo.com>
+    "author": "David Ryder <davidryder@yahoo.com>,
     "license": "MIT",
     "description": "Task cheduler"
 }
