@@ -8,6 +8,7 @@
 #ifndef SCHEDULER_H_
 #define SCHEDULER_H_
 
+#include "application.h"
 #include <string>
 //using namespace std;
 
