@@ -9,7 +9,7 @@
 #define SCHEDULER_H_
 
 #include "application.h"
-#include <string>
+//#include <string>
 //using namespace std;
 
 #define MAX_ITEMS     4
@@ -19,7 +19,6 @@ enum TaskType {
     REPEAT = 1,
     FIXED = 2
 };
-
 
 
 typedef void (* Handler)();
