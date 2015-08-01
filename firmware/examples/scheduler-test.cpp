@@ -20,29 +20,37 @@ void ledD7Off() {
 
 void ledD7Stop() {
     Spark.publish( "stopd7" );
-    s1.remove("d7on");
-    s1.remove("d7off");
+    s1.stop("d7on");
+    s1.stop("d7off");
     ledD7Off();
+}
+
+void stopBlink() {
+    s1.stop( "blink");
+}
+
+void startBlink() {
+    s1.start( "blink ");
 }
 
 void ledMain() {
     RGB.control( true );
     RGB.brightness(64);
     RGB.color(255, 0, 0);
-    delay(1000);
+    delay(500);
     RGB.color(0, 255, 0);
-    delay(1000);
+    delay(500);
     RGB.color(0, 0, 255);
-    delay(1000);
+    delay(500);
     RGB.control(false);
 }
 
 void setup() {
     pinMode(D7, OUTPUT);
-    s1.task( "d7on",  ledD7On, 10, 0, 30 );
-    s1.task( "d7off", ledD7Off, 10, 10, 30 );
+    s1.task( "blink",  blinkD7, 10, 0, 3 );
     s1.task( "ledMain", ledMain, 20, 0, 20 );
-    s1.task( "d7Stop", ledD7Stop, 30);
+    s1.task( "stopBlink", stopBlink, 60);
+    s1.task( "startBlink", startBlink, 120);
 }
 
 
