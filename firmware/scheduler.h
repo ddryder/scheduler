@@ -12,7 +12,7 @@
 //#include <string>
 //using namespace std;
 
-#define MAX_ITEMS     4
+#define MAX_TASKS    10
 #define MAX_NAME_LEN 16
 
 enum TaskType {
@@ -41,9 +41,12 @@ public:
     Scheduler();
     void reset();
     void print();
-    void create( char *  name, Handler h, unsigned long start );
-    void create( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval );
-    void create( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval, unsigned long n );
+    int find( char * name );
+    void start( char * name );
+    void stop( char * name );
+    void task( char *  name, Handler h, unsigned long start );
+    void task( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval );
+    void task( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval, unsigned long n );
     void remove( char *  name );
     void execute();
     unsigned long nextTask(unsigned long maxTime );
@@ -54,7 +57,7 @@ public:
 
 private:
     void createTask( char *  name, Handler h, TaskType type, unsigned long start, unsigned long offset, unsigned long interval, unsigned long n );
-	Item taskList[ MAX_ITEMS ];
+	Item taskList[ MAX_TASKS ];
     int _nItems;
 };
 

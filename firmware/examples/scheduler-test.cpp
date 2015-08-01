@@ -20,8 +20,8 @@ void ledD7Off() {
 
 void ledD7Stop() {
     Spark.publish( "stopd7" );
-    s1.remove("d7On");
-    s1.remove("d7Off");
+    s1.remove("d7on");
+    s1.remove("d7off");
     ledD7Off();
 }
 
@@ -39,10 +39,10 @@ void ledMain() {
 
 void setup() {
     pinMode(D7, OUTPUT);
-    s1.create( "d7on",  ledD7On, 10, 0, 30 );
-    s1.create( "d7off", ledD7Off, 10, 10, 30 );
-    s1.create( "ledMain", ledMain, 20, 0, 20 );
-    s1.create( "d7Stop", ledD7Stop, 30);
+    s1.task( "d7on",  ledD7On, 10, 0, 30 );
+    s1.task( "d7off", ledD7Off, 10, 10, 30 );
+    s1.task( "ledMain", ledMain, 20, 0, 20 );
+    s1.task( "d7Stop", ledD7Stop, 30);
 }
 
 
