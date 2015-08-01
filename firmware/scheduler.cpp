@@ -61,7 +61,7 @@ void Scheduler::createTask( char *  name, Handler h, TaskType type, unsigned lon
 
 void Scheduler::remove(  char *  name ) {
 	for (int i=0; i < MAX_ITEMS; i++) {
-		if ( taskList[i].name == name) {
+		if ( strcmp( taskList[i].name, name) == 0 ) {
 			taskList[i].h = 0;
 			taskList[i].start = 0;
 			taskList[i].name = '\0';
@@ -71,16 +71,12 @@ void Scheduler::remove(  char *  name ) {
 }
 
 unsigned long Scheduler::timeFuture(unsigned long iSec) {
-	//unsigned long now = 9999; // Time.now();
-	//time_t now = time (NULL);
 	unsigned long now = Time.now();
 	return  now + iSec;
 }
 
 unsigned long Scheduler::timeRoundUp(unsigned long iSec, unsigned long offset) {
   // Round now up / future to next iSec period exactly - add offset to adjust
-  //unsigned long now = 9999; // Time.now();
-  //time_t now = time (NULL);
   unsigned long now = Time.now();
   unsigned long o1 = now % iSec; // how far past
   return now - o1 + iSec + offset;
@@ -88,7 +84,6 @@ unsigned long Scheduler::timeRoundUp(unsigned long iSec, unsigned long offset) {
 
 unsigned long Scheduler::nextTask(unsigned long maxTime ) {
 	unsigned long nextTask = timeFuture( maxTime ); // maximum time to next task
-	//time_t now = time (NULL);
     unsigned long now = Time.now();
 	for (int i=0; i < MAX_ITEMS; i++) {
 		Item *ti = &taskList[i];
@@ -103,13 +98,11 @@ unsigned long Scheduler::nextTask(unsigned long maxTime ) {
 
 
 void Scheduler::execute() {
-	//time_t now = time (NULL);
 	unsigned long now = Time.now();
 	for (int i=0; i < MAX_ITEMS; i++) {
 		Item *ti = &taskList[i];
 		if ( ( ti->h != 0) and (ti->start > 0) ) {
 			if ( now > ti->start ) {
-				//cout << "E " << now << " ";
 				ti->h(); // run the task
 				ti->iterations++;
 				ti->start = timeRoundUp( ti->interval, ti->offset); // reschedule
@@ -124,4 +117,4 @@ void Scheduler::execute() {
 			}
 		} // if
 	} // for
-}
+} // execute
