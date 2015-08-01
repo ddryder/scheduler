@@ -78,8 +78,9 @@ void Scheduler::createTask( char * name, Handler h, TaskType type, unsigned long
 void Scheduler::stop( char *  name ) {
 	// stop all that match
 	for (int i=0; i < MAX_TASKS; i++) {
-		if ( strcmp( taskList[i].name, name) == 0 ) {
-			taskList[i].start = 0;
+		Item *ti = &taskList[i];
+		if ( strcmp( ti->name, name) == 0 ) {
+			ti->start = 0;
 		}
 	}
 }
@@ -87,8 +88,8 @@ void Scheduler::stop( char *  name ) {
 void Scheduler::start( char *  name ) {
 	// start all that match
 	for (int i=0; i < MAX_TASKS; i++) {
-		if ( strcmp( taskList[i].name, name) == 0 ) {
-			Item *ti = &taskList[i];
+		Item *ti = &taskList[i];
+		if ( strcmp( ti->name, name) == 0 ) {
 			ti->start = timeRoundUp( ti->interval, ti->offset); // reschedule
 		}
 	}
