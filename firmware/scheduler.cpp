@@ -1,9 +1,13 @@
 #include "scheduler.h"
+#include "application.h"
+// 1
 
 Scheduler::Scheduler() {
-	// TODO Auto-generated constructor stub
+    _nextTask = 0;
+    _maxSize = SCHEDULER_MAX_TASKS; // Fixed number of tasks
+    _now = Time.now();
+    //taskList = new Item[ _maxSize ];
     reset();
-    _nItems = 0;
 }
 
 Scheduler::~Scheduler() {
@@ -11,13 +15,14 @@ Scheduler::~Scheduler() {
 }
 
 void Scheduler::reset() {
-	for (int i=0; i < MAX_TASKS; i++) {
+	for (int i=0; i < _maxSize; i++) {
 		taskList[i].h = 0;
+		taskList[i].start = 0;
 	}
 }
 
 void Scheduler::print() {
-	for (int i=0; i < MAX_TASKS; i++) {
+	for (int i=0; i < _maxSize; i++) {
 		Item ti = (Item)taskList[i];
 		if ( ti.h != 0) {
 			//cout << ti.name<< " " << ti.start << endl;
@@ -26,16 +31,16 @@ void Scheduler::print() {
 }
 
 int Scheduler::find(char * name ) {
-	int i = MAX_TASKS;
-	for (i=0; i < MAX_TASKS; i++) {
+	int i = _maxSize;
+	for (i=0; i < _maxSize; i++) {
 		if ( strcmp( taskList[i].name, name) == 0 ) {
 			break; // matched existing task
 		}
 	}
-	if (i >= MAX_TASKS) { // not found
-		for (i=0; i < MAX_TASKS; i++) {
+	if (i >= _maxSize) { // not found
+		for (i=0; i < _maxSize; i++) {
 			if ( taskList[i].h == 0 ) {
-				break; // available
+				break; // available for new task
 			}
 		}
 	}
@@ -43,51 +48,42 @@ int Scheduler::find(char * name ) {
 }
 
 
-void Scheduler::task( char *  name, Handler h, unsigned long startSecs ) {
+void Scheduler::task( char *  name, Handler h, int startSecs ) {
 	// run once in number of seconds
 	this->createTask( name, h, FIXED, timeFuture( startSecs ), 0, 9999, 1 );
 }
 
-void Scheduler::task( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval) {
-	// run idefintely first at start time and subsequently at set interval
-	this->createTask( name, h, REPEAT, timeRoundUp( start, offset), offset, interval, 0 );
-}
-
-void Scheduler::task( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval, unsigned long n ) {
+void Scheduler::task( char *  name, Handler h, int start, int offset, int interval, int n ) {
 	// repeat fixed number of times
-	this->createTask( name, h, FIXED, timeRoundUp( start, offset ), offset, interval, n );
+	this->createTask( name, h, FIXED, timeFuture( start ), offset, interval, n );
 }
 
+void Scheduler::task( char *  name, Handler h, int start, int offset, int interval) {
+	// run idefintely, first at start time and subsequently at set interval
+	this->createTask( name, h, REPEAT, timeFuture( start ), offset, interval, 0 );
+}
 
-void Scheduler::createTask( char * name, Handler h, TaskType type, unsigned long start, unsigned long offset, unsigned long interval, unsigned long n ) {
+void Scheduler::createTask( char * name, Handler h, TaskType type, int start, int offset, int interval, int n ) {
 	// create new or modify existing
 	int i = find( name );
-	if (i < MAX_TASKS) {
+	if (i < _maxSize) {
 		Item *ti = &taskList[i];
 		ti->name = name;
-		ti->h = h;
+		ti->h = h; // handler
 		ti->type = type;
-		ti->start = start ; // number of seconds to start
+		ti->start = start; // number of seconds to start
 		ti->offset = offset;
 		ti->interval = interval; // every xx seconds
-		ti->n = n;
+		ti->n = n; // repeat task n times
 		ti->iterations = 0;
+	} else {
+		// out of space
 	}
 }
 
-void Scheduler::stop( char *  name ) {
-	// stop all that match
-	for (int i=0; i < MAX_TASKS; i++) {
-		Item *ti = &taskList[i];
-		if ( strcmp( ti->name, name) == 0 ) {
-			ti->start = 0;
-		}
-	}
-}
-
-void Scheduler::start( char *  name ) {
+void Scheduler::start( char * name ) {
 	// start all that match
-	for (int i=0; i < MAX_TASKS; i++) {
+	for (int i=0; i < _maxSize; i++) {
 		Item *ti = &taskList[i];
 		if ( strcmp( ti->name, name) == 0 ) {
 			ti->start = timeRoundUp( ti->interval, ti->offset); // reschedule
@@ -95,9 +91,19 @@ void Scheduler::start( char *  name ) {
 	}
 }
 
-void Scheduler::remove( char *  name ) {
+void Scheduler::stop( char * name ) {
+	// stop all that match
+	for (int i=0; i < _maxSize; i++) {
+		Item *ti = &taskList[i];
+		if ( strcmp( ti->name, name) == 0 ) {
+			ti->start = 0;
+		}
+	}
+}
+
+void Scheduler::remove( char * name ) {
 	// remove all that match
-	for (int i=0; i < MAX_TASKS; i++) {
+	for (int i=0; i < _maxSize; i++) {
 		if ( strcmp( taskList[i].name, name) == 0 ) {
 			taskList[i].h = 0;
 			taskList[i].start = 0;
@@ -106,21 +112,46 @@ void Scheduler::remove( char *  name ) {
 	}
 }
 
-unsigned long Scheduler::timeFuture(unsigned long iSec) {
+int Scheduler::timeFuture(int iSec) {
 	return  Time.now() + iSec;
 }
 
-unsigned long Scheduler::timeRoundUp(unsigned long iSec, unsigned long offset) {
+int Scheduler::timeRoundUp(int iSec, int offset) {
   // Round now up / future to next iSec period exactly - add offset to adjust
-  unsigned long now = Time.now();
-  unsigned long o1 = now % iSec; // how far past
+  int now = Time.now();
+  int o1 = now % iSec; // how far past
   return now - o1 + iSec + offset;
 }
 
-unsigned long Scheduler::nextTask(unsigned long maxTime ) {
-	unsigned long nextTask = timeFuture( maxTime ); // maximum time to next task
-    unsigned long now = Time.now();
-	for (int i=0; i < MAX_TASKS; i++) {
+
+
+void Scheduler::execute() {
+	_now = Time.now();
+	Item *ti = &taskList[ _nextTask ];
+	if ( ( ti->h != 0) and (ti->start > 0) ) {
+		if (_now > ti->start ) {
+			ti->h(); // run the task
+			ti->iterations++;
+			ti->start = timeRoundUp( ti->interval, ti->offset); // reschedule
+			//ti->start = _now + (_now % ti->interval) + ti->interval + ti->offset;
+
+			// Handle fixed number of times
+			if ( ti->type == FIXED ) {
+				ti->n--;
+				if ( ti->n < 1 ) {
+					stop( ti->name ); // stop
+				}
+			}
+		}
+	} // if
+	_nextTask = (_nextTask + 1) % _maxSize;
+} // execute
+
+
+int Scheduler::nextTask(int maxTime ) {
+	int nextTask = timeFuture( maxTime ); // maximum time to next task
+    int now = Time.now();
+	for (int i=0; i < _maxSize; i++) {
 		Item *ti = &taskList[i];
 		if ( ( ti->h != 0) and (ti->start > 0) ) {
 			if ( ti->start < nextTask ) {
@@ -130,26 +161,3 @@ unsigned long Scheduler::nextTask(unsigned long maxTime ) {
 	}
 	return abs( (long)(nextTask - now) ); // number of seconds until next task, may have past, or 0
 }
-
-
-void Scheduler::execute() {
-	unsigned long now = Time.now();
-	for (int i=0; i < MAX_TASKS; i++) {
-		Item *ti = &taskList[i];
-		if ( ( ti->h != 0) and (ti->start > 0) ) {
-			if ( now > ti->start ) {
-				ti->h(); // run the task
-				ti->iterations++;
-				ti->start = timeRoundUp( ti->interval, ti->offset); // reschedule
-
-				// Handle fixed number of times
-				if ( ti->type == FIXED ) {
-					ti->n--;
-					if ( ti->n < 1 ) {
-						stop( ti->name ); // stop
-					}
-				}
-			}
-		} // if
-	} // for
-} // execute

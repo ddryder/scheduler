@@ -8,11 +8,7 @@
 #ifndef SCHEDULER_H_
 #define SCHEDULER_H_
 
-#include "application.h"
-//#include <string>
-//using namespace std;
-
-#define MAX_TASKS    10
+#define SCHEDULER_MAX_TASKS 10
 #define MAX_NAME_LEN 16
 
 enum TaskType {
@@ -27,11 +23,11 @@ typedef struct {
     char *  name;
     Handler h;
     TaskType type;
-    unsigned long start;
-    unsigned long interval;
-    unsigned long offset;
-    unsigned long n;
-    unsigned long iterations;
+    int start;
+    int interval;
+    int offset;
+    int n;
+    int iterations;
 } Item;
 
 
@@ -44,21 +40,23 @@ public:
     int find( char * name );
     void start( char * name );
     void stop( char * name );
-    void task( char *  name, Handler h, unsigned long start );
-    void task( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval );
-    void task( char *  name, Handler h, unsigned long start, unsigned long offset, unsigned long interval, unsigned long n );
+    void task( char *  name, Handler h, int start );
+    void task( char *  name, Handler h, int start, int offset, int interval );
+    void task( char *  name, Handler h, int start, int offset, int interval, int n );
     void remove( char *  name );
     void execute();
-    unsigned long nextTask(unsigned long maxTime );
-    unsigned long timeFuture(unsigned long iSec);
-    unsigned long timeRoundUp(unsigned long iSec, unsigned long offset);
+    int nextTask(int maxTime );
+    int timeFuture(int iSec);
+    int timeRoundUp(int iSec, int offset);
     TaskType type;
 	virtual ~Scheduler();
 
 private:
-    void createTask( char *  name, Handler h, TaskType type, unsigned long start, unsigned long offset, unsigned long interval, unsigned long n );
-	Item taskList[ MAX_TASKS ];
-    int _nItems;
+    void createTask( char *  name, Handler h, TaskType type, int start, int offset, int interval, int n );
+	Item taskList[ SCHEDULER_MAX_TASKS ];
+    int _nextTask;
+    int _maxSize;
+    int _now;
 };
 
 

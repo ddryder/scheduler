@@ -1,4 +1,5 @@
-#include "scheduler/scheduler.h"
+#include "scheduler.h"
+//#include "scheduler/scheduler.h"
 
 Scheduler s1;
 
@@ -26,11 +27,13 @@ void ledD7Stop() {
 }
 
 void stopBlink() {
-    s1.stop( "blink");
+    Spark.publish( "stopBlink" );
+	s1.stop( "blink");
 }
 
 void startBlink() {
-    s1.start( "blink ");
+    Spark.publish( "startBlink" );
+	s1.start( "blink");
 }
 
 void ledMain() {
@@ -47,7 +50,7 @@ void ledMain() {
 
 void setup() {
     pinMode(D7, OUTPUT);
-    s1.task( "blink",  blinkD7, 10, 0, 3 );
+    s1.task( "blink",  blinkD7, 10, 0, 2 );
     s1.task( "ledMain", ledMain, 20, 0, 20 );
     s1.task( "stopBlink", stopBlink, 60);
     s1.task( "startBlink", startBlink, 120);
