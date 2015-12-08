@@ -13,7 +13,8 @@
 
 enum TaskType {
     REPEAT = 1,
-    FIXED = 2
+    FIXED = 2,
+	TRIGGER = 3
 };
 
 
@@ -28,6 +29,8 @@ typedef struct {
     int offset;
     int n;
     int iterations;
+    int ran;
+    int triggerOn;
 } Item;
 
 
@@ -43,6 +46,7 @@ public:
     void task( char *  name, Handler h, int start );
     void task( char *  name, Handler h, int start, int offset, int interval );
     void task( char *  name, Handler h, int start, int offset, int interval, int n );
+    void trigger( char * name, char * trigger, Handler h, int startSecs );
     void remove( char *  name );
     void execute();
     int nextTask(int maxTime );
@@ -52,7 +56,7 @@ public:
 	virtual ~Scheduler();
 
 private:
-    void createTask( char *  name, Handler h, TaskType type, int start, int offset, int interval, int n );
+    void createTask( char *  name, Handler h, TaskType type, int start, int offset, int interval, int n, int triggerOn );
 	Item taskList[ SCHEDULER_MAX_TASKS ];
     int _nextTask;
     int _maxSize;

@@ -1,6 +1,6 @@
 #include "scheduler.h"
 #include "application.h"
-// wed 
+// thur
 
 Scheduler::Scheduler() {
     _nextTask = 0;
@@ -16,8 +16,10 @@ Scheduler::~Scheduler() {
 
 void Scheduler::reset() {
 	for (int i=0; i < _maxSize; i++) {
-		taskList[i].h = 0;
-		taskList[i].start = 0;
+		Item ti = (Item)taskList[i];
+		ti.h = 0;
+		ti.start = 0;
+		ti.ran = 0;
 	}
 }
 
@@ -50,20 +52,29 @@ int Scheduler::find(char * name ) {
 
 void Scheduler::task( char *  name, Handler h, int startSecs ) {
 	// run once in number of seconds
-	this->createTask( name, h, FIXED, timeFuture( startSecs ), 0, 9999, 1 );
+	this->createTask( name, h, FIXED, timeFuture( startSecs ), 0, 9999, 1, -1 );
 }
 
 void Scheduler::task( char *  name, Handler h, int start, int offset, int interval, int n ) {
 	// repeat fixed number of times
-	this->createTask( name, h, FIXED, timeFuture( start ), offset, interval, n );
+	this->createTask( name, h, FIXED, timeFuture( start ), offset, interval, n, -1 );
 }
 
 void Scheduler::task( char *  name, Handler h, int start, int offset, int interval) {
 	// run idefintely, first at start time and subsequently at set interval
-	this->createTask( name, h, REPEAT, timeFuture( start ), offset, interval, 0 );
+	this->createTask( name, h, REPEAT, timeFuture( start ), offset, interval, 0, -1);
 }
 
-void Scheduler::createTask( char * name, Handler h, TaskType type, int start, int offset, int interval, int n ) {
+void Scheduler::trigger( char * name, char * trigger, Handler h, int startSecs ) {
+	int i = find( trigger );
+	if ( i < _maxSize ) {
+		this->createTask( name, h, TRIGGER, 0, 0, startSecs, 0, i );
+	} else {
+		// no task to trigger on
+	}
+} // trigger
+
+void Scheduler::createTask( char * name, Handler h, TaskType type, int start, int offset, int interval, int n, int triggerOn ) {
 	// create new or modify existing
 	int i = find( name );
 	if (i < _maxSize) {
@@ -76,6 +87,8 @@ void Scheduler::createTask( char * name, Handler h, TaskType type, int start, in
 		ti->interval = interval; // every xx seconds
 		ti->n = n; // repeat task n times
 		ti->iterations = 0;
+		ti->ran = 0;
+		ti->triggerOn = triggerOn;
 	} else {
 		// out of space
 	}
@@ -124,27 +137,44 @@ int Scheduler::timeRoundUp(int iSec, int offset) {
 }
 
 
-
 void Scheduler::execute() {
 	_now = Time.now();
 	Item *ti = &taskList[ _nextTask ];
-	if ( ( ti->h != 0) and (ti->start > 0) ) {
-		if (_now > ti->start ) {
+	if ( ti->h != 0) {
+		if (ti->type == TRIGGER) {
+			Item *t = &taskList[ ti->triggerOn ];
+			if ( (ti->start == 0) and  ( t->ran > 0) ) {
+				ti->start = timeFuture( ti->interval ); // Schedule to run
+			}
+		}
+
+		// Run scheduled tasks
+		if ((ti->start > 0) and (_now > ti->start )) {
 			ti->h(); // run the task
+			ti->ran++;
 			ti->iterations++;
 			ti->start = timeRoundUp( ti->interval, ti->offset); // reschedule
-			//ti->start = _now + (_now % ti->interval) + ti->interval + ti->offset;
-
-			// Handle fixed number of times
 			if ( ti->type == FIXED ) {
 				ti->n--;
 				if ( ti->n < 1 ) {
-					stop( ti->name ); // stop
+					ti->start = 0; // stop
 				}
+			} else if ( ti->type == TRIGGER ) {
+				ti->start = 0; // stop
 			}
 		}
-	} // if
+	}
 	_nextTask = (_nextTask + 1) % _maxSize;
+
+	// clear tasks that ran
+	if (_nextTask == 0) {
+		for (int i=0; i < _maxSize; i++) {
+			Item *ti = &taskList[i];
+			if ( ti->ran > 0 ) {
+				ti->ran = 0;
+			}
+		}
+	}
 } // execute
 
 
